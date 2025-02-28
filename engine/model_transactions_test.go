@@ -290,7 +290,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 
 		transaction.transactionService = transactionServiceMock{
 			destinations: map[string]*Destination{
-				"76a91413473d21dc9e1fb392f05a028b447b165a052d4d88ac": {
+				"12kwBQPUnAMouxBBWRa5wsA6vC29soEdXT": {
 					Model:  Model{name: ModelDestination},
 					XpubID: "test-xpub-id",
 				},
@@ -321,7 +321,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 
 		transaction.transactionService = transactionServiceMock{
 			destinations: map[string]*Destination{
-				"76a9140311c6e2114620d68ddfc71519c1a00e0bf9d10b88ac": {
+				"1HEKjeQ4VNHMnqt6TpyrG2qGLyWosvPX7": {
 					Model:  Model{name: ModelDestination},
 					XpubID: "test-xpub-id",
 				},

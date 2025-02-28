@@ -109,7 +109,7 @@ func IsP2PKH(lockingScript string) bool {
 	return P2PKHRegexp.MatchString(lockingScript)
 }
 
-// IsP2PKH Check whether the given string is a partially p2pkh output (e.g. containing a script or a token)
+// IsP2PKHInscription Check whether the given string is a partially p2pkh output (e.g. containing a script or a token)
 func IsP2PKHInscription(lockingScript string) bool {
 	// TODO: potentially check it more strictly, for inscryption - OP_FALSE OP_IF ...
 	return P2PKHSubstringRegexp.MatchString(lockingScript)
@@ -159,8 +159,6 @@ func IsMultiSig(lockingScript string) bool {
 func GetDestinationType(lockingScript string) string {
 	if IsP2PKH(lockingScript) {
 		return ScriptTypePubKeyHash
-	} else if IsP2PKHInscription(lockingScript) {
-		return ScriptTypePubKeyHashInscription
 	} else if IsMetanet(lockingScript) {
 		// metanet is a special op_return - needs to be checked first
 		return ScriptMetanet
@@ -176,6 +174,8 @@ func GetDestinationType(lockingScript string) string {
 		return ScriptTypeTokenSensible
 	} else if IsP2PK(lockingScript) {
 		return ScriptTypePubKey
+	} else if IsP2PKHInscription(lockingScript) {
+		return ScriptTypePubKeyHashInscription
 	}
 
 	return ScriptTypeNonStandard
@@ -204,7 +204,6 @@ func GetAddressFromScript(lockingScript string) (address string) {
 	switch scriptType {
 	case ScriptTypePubKeyHashInscription:
 		lockingScript = P2PKHSubstringRegexp.FindString(lockingScript)
-		scriptType = ScriptTypePubKeyHash
 		fallthrough
 	case ScriptTypePubKeyHash:
 		s, err := script.NewFromHex(lockingScript)
