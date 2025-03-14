@@ -216,7 +216,7 @@ reserveUtxoLoop:
 
 			// add fee for this new input
 			feeNeeded += uint64(math.Ceil(float64(size) * feePerByte))
-			if reservedSatoshis >= (satoshis + feeNeeded) {
+			if fromUtxos == nil && reservedSatoshis >= (satoshis+feeNeeded) {
 				break reserveUtxoLoop
 			}
 		}
