@@ -80,7 +80,7 @@ func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams
 			} else if utxo == nil {
 				return nil, spverrors.ErrCouldNotFindUtxo
 			}
-			if utxo.XpubID != xPubID || utxo.SpendingTxID.Valid {
+			if utxo.SpendingTxID.Valid {
 				return nil, spverrors.ErrUtxoAlreadySpent
 			}
 			models = append(models, *utxo)
