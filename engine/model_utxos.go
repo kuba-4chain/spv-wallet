@@ -80,7 +80,7 @@ func getSpendableUtxos(ctx context.Context, xPubID, utxoType string, queryParams
 			} else if utxo == nil {
 				return nil, spverrors.ErrCouldNotFindUtxo
 			}
-			if utxo.XpubID != xPubID || utxo.SpendingTxID.Valid {
+			if utxo.SpendingTxID.Valid {
 				return nil, spverrors.ErrUtxoAlreadySpent
 			}
 			models = append(models, *utxo)
@@ -216,7 +216,7 @@ reserveUtxoLoop:
 
 			// add fee for this new input
 			feeNeeded += uint64(math.Ceil(float64(size) * feePerByte))
-			if reservedSatoshis >= (satoshis + feeNeeded) {
+			if fromUtxos == nil && reservedSatoshis >= (satoshis+feeNeeded) {
 				break reserveUtxoLoop
 			}
 		}

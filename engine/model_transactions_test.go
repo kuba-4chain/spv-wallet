@@ -41,6 +41,10 @@ func (x transactionServiceMock) getDestinationByLockingScript(_ context.Context,
 	return x.destinations[lockingScript], nil
 }
 
+func (x transactionServiceMock) getDestinationByAddress(_ context.Context, address string, _ ...ModelOps) (*Destination, error) {
+	return x.destinations[address], nil
+}
+
 func (x transactionServiceMock) getUtxo(_ context.Context, txID string, index uint32, _ ...ModelOps) (*Utxo, error) {
 	return x.utxos[txID][index], nil
 }
@@ -296,7 +300,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 
 		transaction.transactionService = transactionServiceMock{
 			destinations: map[string]*Destination{
-				"76a91413473d21dc9e1fb392f05a028b447b165a052d4d88ac": {
+				"12kwBQPUnAMouxBBWRa5wsA6vC29soEdXT": {
 					Model:  Model{name: ModelDestination},
 					XpubID: "test-xpub-id",
 				},
@@ -327,7 +331,7 @@ func (ts *EmbeddedDBTestSuite) TestTransaction_processOutputs() {
 
 		transaction.transactionService = transactionServiceMock{
 			destinations: map[string]*Destination{
-				"76a9140311c6e2114620d68ddfc71519c1a00e0bf9d10b88ac": {
+				"1HEKjeQ4VNHMnqt6TpyrG2qGLyWosvPX7": {
 					Model:  Model{name: ModelDestination},
 					XpubID: "test-xpub-id",
 				},

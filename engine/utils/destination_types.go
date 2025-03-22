@@ -14,6 +14,9 @@ const (
 	// ScriptTypePubKeyHash alias from bscript
 	ScriptTypePubKeyHash = script.ScriptTypePubKeyHash
 
+	// ScriptTypePubKeyHashInscription alias
+	ScriptTypePubKeyHashInscription = script.ScriptTypePubKeyHashInscription
+
 	// ScriptTypeNullData alias from bscript
 	ScriptTypeNullData = script.ScriptTypeNullData
 
@@ -106,6 +109,12 @@ func IsP2PKH(lockingScript string) bool {
 	return P2PKHRegexp.MatchString(lockingScript)
 }
 
+// IsP2PKHInscription Check whether the given string is a partially p2pkh output (e.g. containing a script or a token)
+func IsP2PKHInscription(lockingScript string) bool {
+	// TODO: potentially check it more strictly, for inscryption - OP_FALSE OP_IF ...
+	return P2PKHSubstringRegexp.MatchString(lockingScript)
+}
+
 // IsP2SH Check whether the given string is a p2shHex output
 func IsP2SH(lockingScript string) bool {
 	return P2SHRegexp.MatchString(lockingScript)
@@ -165,6 +174,8 @@ func GetDestinationType(lockingScript string) string {
 		return ScriptTypeTokenSensible
 	} else if IsP2PK(lockingScript) {
 		return ScriptTypePubKey
+	} else if IsP2PKHInscription(lockingScript) {
+		return ScriptTypePubKeyHashInscription
 	}
 
 	return ScriptTypeNonStandard
@@ -189,7 +200,12 @@ func GetDestinationTypeRegex(destType string) *regexp.Regexp {
 // FIXME: add logger on this scope to have info about returned errors
 func GetAddressFromScript(lockingScript string) (address string) {
 	scriptType := GetDestinationType(lockingScript)
-	if scriptType == ScriptTypePubKeyHash {
+
+	switch scriptType {
+	case ScriptTypePubKeyHashInscription:
+		lockingScript = P2PKHSubstringRegexp.FindString(lockingScript)
+		fallthrough
+	case ScriptTypePubKeyHash:
 		s, err := script.NewFromHex(lockingScript)
 		if err != nil {
 			return ""
@@ -201,7 +217,7 @@ func GetAddressFromScript(lockingScript string) (address string) {
 		}
 
 		address = addresses[0]
-	} else if scriptType == ScriptTypePubKey {
+	case ScriptTypePubKey:
 		s, err := script.NewFromHex(lockingScript)
 		if err != nil {
 			return ""
@@ -222,7 +238,8 @@ func GetAddressFromScript(lockingScript string) (address string) {
 		}
 
 		address = addressScript.AddressString
-	} else if scriptType == ScriptTypeTokenStas {
+
+	case ScriptTypeTokenStas:
 		// stas is just a normal PubKeyHash with more data appended
 		s, err := script.NewFromHex(lockingScript[:50])
 		if err != nil {
@@ -240,6 +257,7 @@ func GetAddressFromScript(lockingScript string) (address string) {
 		// sensible does not seem to be a utxo protocol, but an output protocol (all outputs of the tx matter)
 		// TODO saving the utxo for the token in SPV Wallet Engine
 	}
+
 	return address
 }
 
