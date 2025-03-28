@@ -8,7 +8,7 @@ import (
 	"github.com/bitcoin-sv/go-paymail/server"
 	"github.com/bitcoin-sv/spv-wallet/config"
 	"github.com/bitcoin-sv/spv-wallet/engine/chain"
-	"github.com/bitcoin-sv/spv-wallet/engine/chain/models"
+	chainmodels "github.com/bitcoin-sv/spv-wallet/engine/chain/models"
 	"github.com/bitcoin-sv/spv-wallet/engine/cluster"
 	"github.com/bitcoin-sv/spv-wallet/engine/datastore"
 	"github.com/bitcoin-sv/spv-wallet/engine/logging"
@@ -17,6 +17,7 @@ import (
 	paymailclient "github.com/bitcoin-sv/spv-wallet/engine/paymail"
 	"github.com/bitcoin-sv/spv-wallet/engine/spverrors"
 	"github.com/bitcoin-sv/spv-wallet/engine/taskmanager"
+	"github.com/bitcoin-sv/spv-wallet/engine/tokens"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/addresses"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/data"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/database/repository"
@@ -68,6 +69,9 @@ type (
 		operations   *operations.Service
 		data         *data.Service
 		config       *config.AppConfig
+
+		// tokens
+		tokenOverlayClient tokens.TokenOverlayClient // Token Overlay Client for validating token transactions
 	}
 
 	// cacheStoreOptions holds the cache configuration and client
@@ -204,6 +208,8 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
+	client.loadTokenOverlayClient()
+
 	// Return the client
 	return client, nil
 }
@@ -329,6 +335,10 @@ func (c *Client) Metrics() (metrics *metrics.Metrics, enabled bool) {
 // Chain will return the chain service
 func (c *Client) Chain() chain.Service {
 	return c.options.chainService
+}
+
+func (c *Client) Tokens() tokens.TokenOverlayClient {
+	return c.options.tokenOverlayClient
 }
 
 // LogBHSReadiness tries to ping BHS server. The result is logged.

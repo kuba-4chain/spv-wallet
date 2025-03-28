@@ -469,7 +469,7 @@ func (m *DraftTransaction) processUtxos(ctx context.Context, utxos []*Utxo) erro
 			return spverrors.ErrCouldNotFindDestination
 		}
 
-		// (!) replace lockingScript with lockingScript+token
+		// (!) replace destination lockingScript with actual UTXO lockingScript (may contain a token)
 		destination.LockingScript = lockingScript
 
 		m.Configuration.Inputs = append(

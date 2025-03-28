@@ -21,6 +21,9 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: if token transaction - validate in overlay @Kuba
+
 	if err = broadcastTransaction(ctx, transaction); err != nil {
 		return nil, err
 	}

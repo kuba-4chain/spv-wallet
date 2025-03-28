@@ -34,6 +34,7 @@ func GetDefaultAppConfig() *AppConfig {
 		Metrics:              getMetricsDefaults(),
 		ExperimentalFeatures: getExperimentalFeaturesConfig(),
 		CustomFeeUnit:        nil,
+		TokenOverlay:         getTokenOverlayConfig(),
 	}
 }
 
@@ -168,5 +169,11 @@ func getExperimentalFeaturesConfig() *ExperimentalConfig {
 	return &ExperimentalConfig{
 		PikeContactsEnabled: false,
 		PikePaymentEnabled:  false,
+	}
+}
+
+func getTokenOverlayConfig() *TokenOverlayConfig {
+	return &TokenOverlayConfig{
+		URL: "http://localhost:3091",
 	}
 }

@@ -62,6 +62,8 @@ type AppConfig struct {
 	RequestLogging bool `json:"request_logging" mapstructure:"request_logging"`
 	// CustomFeeUnit
 	CustomFeeUnit *FeeUnitConfig `json:"custom_fee_unit" mapstructure:"custom_fee_unit"`
+	// TokenOverlay is a config for Token Overlay Service for token transactions validation.
+	TokenOverlay *TokenOverlayConfig `json:"token_overlay" mapstructure:"token_overlay"`
 }
 
 // AuthenticationConfig is the configuration for Authentication
@@ -241,4 +243,10 @@ type ExperimentalConfig struct {
 	UseJunglebus bool `json:"use_junglebus" mapstructure:"use_junglebus"`
 	// V2 is a flag for enabling the new transaction flow
 	V2 bool `json:"new_transaction_flow_enabled" mapstructure:"new_transaction_flow_enabled"`
+}
+
+// TokenOverlayConfig is a config for Token Overlay Service for token transactions validation.
+type TokenOverlayConfig struct {
+	// URL is a URL for Token Overlay Service.
+	URL string `json:"url" mapstructure:"url"`
 }
