@@ -128,3 +128,6 @@ experimental_features:
   pike_contacts_enabled: false
   # pike_payment_enabled is a flag for enabling Pike payment capability.
   pike_payment_enabled: false
+
+token_overlay:
+  url: "http://localhost:3091"

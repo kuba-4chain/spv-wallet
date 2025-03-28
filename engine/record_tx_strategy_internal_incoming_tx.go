@@ -19,6 +19,8 @@ func (strategy *internalIncomingTx) Name() string {
 func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, _ []ModelOps) (*Transaction, error) {
 	transaction := strategy.Tx
 
+	// TODO: validate in overlay @Kuba
+
 	if err := broadcastTransaction(ctx, transaction); err != nil {
 		return nil, err
 	}

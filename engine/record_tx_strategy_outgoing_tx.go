@@ -52,8 +52,11 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 
 	if transaction.TxStatus == TxStatusBroadcasted {
 		// no need to broadcast twice
+		// this also means that if the transaction contained the token - it was validated in overlay
 		return transaction, nil
 	}
+
+	// TODO: validate and save in overlay @Kuba
 
 	if err = broadcastTransaction(ctx, transaction); err != nil {
 		logger.Warn().Str("txID", transaction.ID).Msgf("broadcasting failed in outgoingTx strategy")

@@ -334,12 +334,13 @@ func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client Cli
 	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
 	for _, output := range m.parsedTx.Outputs {
 		lockingScript := output.LockingScript.String()
-		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript)
+		address := utils.GetAddressFromScript(lockingScript)
+		destination, err := getDestinationWithCache(ctx, client, "", address, lockingScript)
 
 		if err != nil {
 			client.Logger().Error().Str("txID", m.ID).Msgf("error getting destination: %s", err.Error())
 			continue
-		} else if destination != nil && destination.LockingScript == lockingScript {
+		} else if destination != nil {
 			return true
 		}
 	}

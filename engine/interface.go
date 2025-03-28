@@ -6,13 +6,14 @@ import (
 
 	"github.com/bitcoin-sv/go-paymail"
 	"github.com/bitcoin-sv/spv-wallet/engine/chain"
-	"github.com/bitcoin-sv/spv-wallet/engine/chain/models"
+	chainmodels "github.com/bitcoin-sv/spv-wallet/engine/chain/models"
 	"github.com/bitcoin-sv/spv-wallet/engine/cluster"
 	"github.com/bitcoin-sv/spv-wallet/engine/datastore"
 	"github.com/bitcoin-sv/spv-wallet/engine/metrics"
 	"github.com/bitcoin-sv/spv-wallet/engine/notifications"
 	paymailclient "github.com/bitcoin-sv/spv-wallet/engine/paymail"
 	"github.com/bitcoin-sv/spv-wallet/engine/taskmanager"
+	"github.com/bitcoin-sv/spv-wallet/engine/tokens"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/addresses"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/data"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/database/repository"
@@ -171,6 +172,10 @@ type V2 interface {
 	TxSyncService() *txsync.Service
 }
 
+type TokenOverlayService interface {
+	ValidateToken()
+}
+
 // ClientInterface is the client (spv wallet engine) interface comprised of all services/actions
 type ClientInterface interface {
 	AccessKeyService
@@ -198,4 +203,5 @@ type ClientInterface interface {
 	LogBHSReadiness(ctx context.Context)
 	FeeUnit() bsv.FeeUnit
 	V2
+	Tokens() tokens.TokenOverlayClient
 }
