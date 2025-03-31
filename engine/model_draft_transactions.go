@@ -252,7 +252,10 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	}
 
 	// Create the final hex (without signatures)
-	m.Hex = tx.String()
+	m.Hex, err = tx.EFHex()
+	if err != nil {
+		return
+	}
 
 	return
 }

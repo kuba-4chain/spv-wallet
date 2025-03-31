@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	trx "github.com/bitcoin-sv/go-sdk/transaction"
+	"github.com/bitcoin-sv/spv-wallet/engine/spverrors"
 )
 
 type externalIncomingTx struct {
@@ -22,7 +23,16 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		return nil, err
 	}
 
-	// TODO: if token transaction - validate in overlay @Kuba
+	if _isTokenTransaction(transaction.parsedTx) {
+		err = c.Tokens().VerifyAndSaveTokenTransfer(ctx, transaction.Hex)
+		if err != nil {
+			return nil, spverrors.ErrTokenValidationFailed.Wrap(err)
+		}
+	}
+
+	if err := transaction.processUtxos(ctx); err != nil {
+		return nil, err
+	}
 
 	if err = broadcastTransaction(ctx, transaction); err != nil {
 		return nil, err
@@ -61,10 +71,6 @@ func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c C
 
 	if !tx.TransactionBase.hasOneKnownDestination(ctx, c) {
 		return nil, ErrNoMatchingOutputs
-	}
-
-	if err := tx.processUtxos(ctx); err != nil {
-		return nil, err
 	}
 
 	return tx, nil

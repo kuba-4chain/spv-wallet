@@ -211,7 +211,9 @@ func NewClient(ctx context.Context, opts ...ClientOps) (ClientInterface, error) 
 		return nil, err
 	}
 
-	client.loadTokenOverlayClient()
+	if err = client.loadTokenOverlayClient(); err != nil {
+		return nil, err
+	}
 
 	// Return the client
 	return client, nil
@@ -340,10 +342,6 @@ func (c *Client) Chain() chain.Service {
 	return c.options.chainService
 }
 
-func (c *Client) Tokens() tokens.TokenOverlayClient {
-	return c.options.tokenOverlayClient
-}
-
 // LogBHSReadiness tries to ping BHS server. The result is logged.
 func (c *Client) LogBHSReadiness(ctx context.Context) {
 	logger := c.Logger()
@@ -395,4 +393,6 @@ func (c *Client) OperationsService() *operations.Service {
 // TxSyncService will return the transaction sync service
 func (c *Client) TxSyncService() *txsync.Service {
 	return c.options.txSync
+func (c *Client) Tokens() tokens.TokenOverlayClient {
+	return c.options.tokenOverlayClient
 }
