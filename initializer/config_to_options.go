@@ -61,8 +61,6 @@ func ToEngineOptions(c *config.AppConfig, logger zerolog.Logger) (options []engi
 
 	options = addCustomFeeUnit(c, options)
 
-	options = addTokenOverlayOpts(c, options)
-
 	return options, nil
 }
 
@@ -308,8 +306,4 @@ func addARCOpts(c *config.AppConfig, options []engine.ClientOps) ([]engine.Clien
 
 func addBHSOpts(c *config.AppConfig, options []engine.ClientOps) []engine.ClientOps {
 	return append(options, engine.WithBHS(c.BHS.URL, c.BHS.AuthToken))
-}
-
-func addTokenOverlayOpts(c *config.AppConfig, options []engine.ClientOps) []engine.ClientOps {
-	return append(options)
 }

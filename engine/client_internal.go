@@ -327,6 +327,12 @@ func (c *Client) askForFeeUnit(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) loadTokenOverlayClient() {
-	c.options.tokenOverlayClient = tokens.NewTokenOverlayClient(c.Logger(), c.options.config.TokenOverlay.URL, c.options.httpClient)
+func (c *Client) loadTokenOverlayClient() error {
+	tc, err := tokens.NewTokenOverlayClient(c.Logger(), c.options.config.TokenOverlay.URL, c.options.httpClient)
+	if err != nil {
+		return spverrors.Wrapf(err, "failed to init token overlay client")
+	}
+
+	c.options.tokenOverlayClient = tc
+	return nil
 }

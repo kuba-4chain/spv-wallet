@@ -19,13 +19,16 @@ type tokenOverlayClient struct {
 	api *api.Client
 }
 
-func NewTokenOverlayClient(logger *zerolog.Logger, overlayURL string, httpClient *resty.Client) TokenOverlayClient {
-	api, _ := api.NewClient(overlayURL, api.WithHTTPClient(httpClient.GetClient()))
+func NewTokenOverlayClient(logger *zerolog.Logger, overlayURL string, httpClient *resty.Client) (TokenOverlayClient, error) {
+	api, err := api.NewClient(overlayURL, api.WithHTTPClient(httpClient.GetClient()))
+	if err != nil {
+		return nil, err
+	}
 
 	return &tokenOverlayClient{
 		log: logger.With().Str("tokens", "token-overlay-client").Logger(),
 		api: api,
-	}
+	}, nil
 }
 
 func (c *tokenOverlayClient) VerifyAndSaveTokenTransfer(ctx context.Context, txHex string) error {

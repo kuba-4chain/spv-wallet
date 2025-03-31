@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/4chain-AG/gateway-overlay/pkg/token_engine/specifications"
 	trx "github.com/bitcoin-sv/go-sdk/transaction"
 	"github.com/bitcoin-sv/spv-wallet/engine/spverrors"
 )
@@ -28,6 +29,16 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 
 	if transaction, err = strategy.createOutgoingTxToRecord(ctx, c, opts); err != nil {
 		return nil, spverrors.ErrCreateOutgoingTxFailed.Wrap(err)
+	}
+
+	if _isTokenTransaction(transaction.parsedTx) {
+		err = c.Tokens().VerifyAndSaveTokenTransfer(ctx, transaction.Hex)
+		if err != nil {
+			// TODO: should we unreserve UTXOs here?
+			// transaction.draftTransaction.Status = DraftStatusCanceled
+			// transaction.draftTransaction.Save(ctx)
+			return nil, spverrors.ErrTokenValidationFailed.Wrap(err)
+		}
 	}
 
 	if err = transaction.processUtxos(ctx); err != nil {
@@ -55,8 +66,6 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 		// this also means that if the transaction contained the token - it was validated in overlay
 		return transaction, nil
 	}
-
-	// TODO: validate and save in overlay @Kuba
 
 	if err = broadcastTransaction(ctx, transaction); err != nil {
 		logger.Warn().Str("txID", transaction.ID).Msgf("broadcasting failed in outgoingTx strategy")
@@ -177,4 +186,29 @@ func _handleNotifyP2PError(ctx context.Context, c ClientInterface, transaction *
 
 	// RevertTransaction saves the transaction itself as REVERTED
 	return p2pError
+}
+
+func _isTokenTransaction(tx *trx.Transaction) bool {
+	for _, in := range tx.Inputs {
+		if in.SourceTxOutput() == nil {
+			// tx is not in EF - ignore for now (consider as a normal tx)
+			return false
+		}
+
+		ops, err := in.SourceTxOutput().LockingScript.ParseOps()
+		if err != nil {
+			// something wrong with parsing the script - ignore
+			return false
+		}
+
+		spec := new(specifications.Bsv21EnvelopeSpec)
+		hasBsvEnvelope, _ := spec.IsSatisfiedBy(ops)
+
+		if hasBsvEnvelope {
+			// this is a token tx
+			return true
+		}
+	}
+
+	return false
 }
