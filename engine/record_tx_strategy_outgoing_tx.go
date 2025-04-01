@@ -31,16 +31,6 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 		return nil, spverrors.ErrCreateOutgoingTxFailed.Wrap(err)
 	}
 
-	if _isTokenTransaction(transaction.parsedTx) {
-		err = c.Tokens().VerifyAndSaveTokenTransfer(ctx, transaction.Hex)
-		if err != nil {
-			// TODO: should we unreserve UTXOs here?
-			// transaction.draftTransaction.Status = DraftStatusCanceled
-			// transaction.draftTransaction.Save(ctx)
-			return nil, spverrors.ErrTokenValidationFailed.Wrap(err)
-		}
-	}
-
 	if err = transaction.processUtxos(ctx); err != nil {
 		return nil, err
 	}
@@ -65,6 +55,14 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 		// no need to broadcast twice
 		// this also means that if the transaction contained the token - it was validated in overlay
 		return transaction, nil
+	}
+
+	if _isTokenTransaction(transaction.parsedTx) {
+		err = c.Tokens().VerifyAndSaveTokenTransfer(ctx, transaction.Hex)
+		// TODO: should we ignore the error and broadcast anyway if the receiver accepted?
+		if err != nil {
+			return nil, spverrors.ErrTokenValidationFailed.Wrap(err)
+		}
 	}
 
 	if err = broadcastTransaction(ctx, transaction); err != nil {
