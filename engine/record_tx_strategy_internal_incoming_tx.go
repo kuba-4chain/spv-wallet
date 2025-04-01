@@ -19,6 +19,13 @@ func (strategy *internalIncomingTx) Name() string {
 func (strategy *internalIncomingTx) Execute(ctx context.Context, c ClientInterface, _ []ModelOps) (*Transaction, error) {
 	transaction := strategy.Tx
 
+	if _isTokenTransaction(transaction.parsedTx) {
+		err := c.Tokens().VerifyAndSaveTokenTransfer(ctx, transaction.Hex)
+		if err != nil {
+			return nil, spverrors.ErrTokenValidationFailed.Wrap(err)
+		}
+	}
+
 	if err := broadcastTransaction(ctx, transaction); err != nil {
 		return nil, err
 	}

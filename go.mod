@@ -9,8 +9,6 @@ go 1.24.0
 // that often require modifications across multiple packages. Please refrain from removing these directives.
 replace github.com/bitcoin-sv/spv-wallet/models => ./models
 
-replace github.com/4chain-AG/gateway-overlay => ../gateway-overlay
-
 require (
 	github.com/4chain-AG/gateway-overlay v0.0.0
 	github.com/99designs/gqlgen v0.17.66
