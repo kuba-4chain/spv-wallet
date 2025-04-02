@@ -1,16 +1,11 @@
 package utils
 
-import "encoding/hex"
+import (
+	"strings"
+)
+
+const efMarker = "0000000000ef"
 
 func IsEf(txHex string) bool {
-	hex, _ := hex.DecodeString(txHex)
-	// check markers - first 10 bytes
-	// 4 bytes for version + 6 bytes for the marker - 0000000000EF
-	return len(hex) > 10 &&
-		hex[4] == 0 &&
-		hex[5] == 0 &&
-		hex[6] == 0 &&
-		hex[7] == 0 &&
-		hex[8] == 0 &&
-		hex[9] == 0xEF
+	return len(txHex) > 20 && strings.EqualFold(txHex[8:20], efMarker)
 }
