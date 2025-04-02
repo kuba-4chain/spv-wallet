@@ -132,10 +132,14 @@ func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (*Transa
 	return tx, nil
 }
 
-func txFromSDKTx(sdkTx *trx.Transaction, opts ...ModelOps) *Transaction {
+func txFromSDKTx(sdkTx *trx.Transaction, isExtended bool, opts ...ModelOps) *Transaction {
 	tx := emptyTx(opts...)
 	tx.ID = sdkTx.TxID().String()
-	tx.Hex = sdkTx.String()
+	if isExtended {
+		tx.Hex, _ = sdkTx.EFHex()
+	} else {
+		tx.Hex = sdkTx.String()
+	}
 	tx.parsedTx = sdkTx
 
 	return tx

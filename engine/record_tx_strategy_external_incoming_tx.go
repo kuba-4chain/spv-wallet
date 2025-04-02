@@ -9,8 +9,9 @@ import (
 )
 
 type externalIncomingTx struct {
-	SDKTx *trx.Transaction
-	txID  string
+	SDKTx      *trx.Transaction
+	txID       string
+	isExtended bool
 }
 
 func (strategy *externalIncomingTx) Name() string {
@@ -23,11 +24,14 @@ func (strategy *externalIncomingTx) Execute(ctx context.Context, c ClientInterfa
 		return nil, err
 	}
 
+	logger := c.Logger()
 	if _isTokenTransaction(transaction.parsedTx) {
+		logger.Info().Str("strategy", "external incoming").Msg("Token transaction FOUND")
 		err = c.Tokens().VerifyAndSaveTokenTransfer(ctx, transaction.Hex)
 		if err != nil {
 			return nil, spverrors.ErrTokenValidationFailed.Wrap(err)
 		}
+		logger.Info().Str("strategy", "external incoming").Msg("Token transaction successfully VALIDATED")
 	}
 
 	if err := transaction.processUtxos(ctx); err != nil {
@@ -67,7 +71,7 @@ func (strategy *externalIncomingTx) LockKey() string {
 
 func _createExternalTxToRecord(ctx context.Context, eTx *externalIncomingTx, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	// Create NEW tx model
-	tx := txFromSDKTx(eTx.SDKTx, c.DefaultModelOptions(append(opts, New())...)...)
+	tx := txFromSDKTx(eTx.SDKTx, eTx.isExtended, c.DefaultModelOptions(append(opts, New())...)...)
 
 	if !tx.TransactionBase.hasOneKnownDestination(ctx, c) {
 		return nil, ErrNoMatchingOutputs
