@@ -393,6 +393,8 @@ func (c *Client) OperationsService() *operations.Service {
 // TxSyncService will return the transaction sync service
 func (c *Client) TxSyncService() *txsync.Service {
 	return c.options.txSync
+}
+
 func (c *Client) Tokens() tokens.TokenOverlayClient {
 	return c.options.tokenOverlayClient
 }
