@@ -326,6 +326,9 @@ var ErrTxRevertFoundOnChain = models.SPVError{Message: "transaction was found on
 // ErrTxRevertUtxoAlreadySpent is when utxo from tx was already spent
 var ErrTxRevertUtxoAlreadySpent = models.SPVError{Message: "utxo of this transaction has been spent, cannot revert", StatusCode: 400, Code: "error-transaction-revert-utxo-already-spent"}
 
+// ErrTokenValidationFailed is when token validation in token-overlay fails
+var ErrTokenValidationFailed = models.SPVError{Message: "failed to verify token transaction"}
+
 // ////////////////////////////////// UTXO ERRORS
 
 // ErrCouldNotFindUtxo is an error when a given utxo could not be found

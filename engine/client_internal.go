@@ -12,6 +12,7 @@ import (
 	"github.com/bitcoin-sv/spv-wallet/engine/paymail"
 	"github.com/bitcoin-sv/spv-wallet/engine/spverrors"
 	"github.com/bitcoin-sv/spv-wallet/engine/taskmanager"
+	"github.com/bitcoin-sv/spv-wallet/engine/tokens"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/addresses"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/data"
 	"github.com/bitcoin-sv/spv-wallet/engine/v2/database/repository"
@@ -323,5 +324,15 @@ func (c *Client) askForFeeUnit(ctx context.Context) error {
 	}
 	c.options.feeUnit = feeUnit
 	c.Logger().Info().Msgf("Fee unit set by ARC policy: %d satoshis per %d bytes", feeUnit.Satoshis, feeUnit.Bytes)
+	return nil
+}
+
+func (c *Client) loadTokenOverlayClient() error {
+	tc, err := tokens.NewTokenOverlayClient(c.Logger(), c.options.config.TokenOverlay.URL, c.options.httpClient)
+	if err != nil {
+		return spverrors.Wrapf(err, "failed to init token overlay client")
+	}
+
+	c.options.tokenOverlayClient = tc
 	return nil
 }

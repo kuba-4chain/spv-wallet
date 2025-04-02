@@ -132,10 +132,14 @@ func newTransactionWithDraftID(txHex, draftID string, opts ...ModelOps) (*Transa
 	return tx, nil
 }
 
-func txFromSDKTx(sdkTx *trx.Transaction, opts ...ModelOps) *Transaction {
+func txFromSDKTx(sdkTx *trx.Transaction, isExtended bool, opts ...ModelOps) *Transaction {
 	tx := emptyTx(opts...)
 	tx.ID = sdkTx.TxID().String()
-	tx.Hex = sdkTx.String()
+	if isExtended {
+		tx.Hex, _ = sdkTx.EFHex()
+	} else {
+		tx.Hex = sdkTx.String()
+	}
 	tx.parsedTx = sdkTx
 
 	return tx
@@ -334,12 +338,13 @@ func (m *TransactionBase) hasOneKnownDestination(ctx context.Context, client Cli
 	// todo: this can be optimized searching X records at a time vs loop->query->loop->query
 	for _, output := range m.parsedTx.Outputs {
 		lockingScript := output.LockingScript.String()
-		destination, err := getDestinationWithCache(ctx, client, "", "", lockingScript)
+		address := utils.GetAddressFromScript(lockingScript)
+		destination, err := getDestinationWithCache(ctx, client, "", address, lockingScript)
 
 		if err != nil {
 			client.Logger().Error().Str("txID", m.ID).Msgf("error getting destination: %s", err.Error())
 			continue
-		} else if destination != nil && destination.LockingScript == lockingScript {
+		} else if destination != nil {
 			return true
 		}
 	}

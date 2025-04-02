@@ -45,11 +45,12 @@ func recordTransaction(ctx context.Context, c ClientInterface, strategy recordTx
 	return
 }
 
-func getOutgoingTxRecordStrategy(xPubKey string, sdkTx *trx.Transaction, draftID string) (recordTxStrategy, error) {
+func getOutgoingTxRecordStrategy(xPubKey string, sdkTx *trx.Transaction, draftID string, isExtended bool) (recordTxStrategy, error) {
 	rts := &outgoingTx{
 		SDKTx:          sdkTx,
 		RelatedDraftID: draftID,
 		XPubKey:        xPubKey,
+		isExtended:     isExtended,
 	}
 
 	if err := rts.Validate(); err != nil {
@@ -59,7 +60,7 @@ func getOutgoingTxRecordStrategy(xPubKey string, sdkTx *trx.Transaction, draftID
 	return rts, nil
 }
 
-func getIncomingTxRecordStrategy(ctx context.Context, c ClientInterface, sdkTx *trx.Transaction) (recordIncomingTxStrategy, error) {
+func getIncomingTxRecordStrategy(ctx context.Context, c ClientInterface, sdkTx *trx.Transaction, isExtended bool) (recordIncomingTxStrategy, error) {
 	tx, err := getTransactionByHex(ctx, sdkTx.String(), c.DefaultModelOptions()...)
 	if err != nil {
 		return nil, err
@@ -74,7 +75,8 @@ func getIncomingTxRecordStrategy(ctx context.Context, c ClientInterface, sdkTx *
 		}
 	} else {
 		rts = &externalIncomingTx{
-			SDKTx: sdkTx,
+			SDKTx:      sdkTx,
+			isExtended: isExtended,
 		}
 	}
 

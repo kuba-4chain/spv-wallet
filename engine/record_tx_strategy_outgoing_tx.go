@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/4chain-AG/gateway-overlay/pkg/token_engine/specifications"
 	trx "github.com/bitcoin-sv/go-sdk/transaction"
 	"github.com/bitcoin-sv/spv-wallet/engine/spverrors"
 )
@@ -14,6 +15,7 @@ type outgoingTx struct {
 	RelatedDraftID string
 	XPubKey        string
 	txID           string
+	isExtended     bool
 }
 
 func (strategy *outgoingTx) Name() string {
@@ -52,7 +54,18 @@ func (strategy *outgoingTx) Execute(ctx context.Context, c ClientInterface, opts
 
 	if transaction.TxStatus == TxStatusBroadcasted {
 		// no need to broadcast twice
+		// this also means that if the transaction contained the token - it was validated in overlay
 		return transaction, nil
+	}
+
+	if _isTokenTransaction(transaction.parsedTx) {
+		logger.Info().Str("strategy", "outgoing").Msg("Token transaction FOUND")
+		err = c.Tokens().VerifyAndSaveTokenTransfer(ctx, transaction.Hex)
+		// TODO: should we ignore the error and broadcast anyway if the receiver accepted?
+		if err != nil {
+			return nil, spverrors.ErrTokenValidationFailed.Wrap(err)
+		}
+		logger.Info().Str("strategy", "outgoing").Msg("Token transaction successfully VALIDATED")
 	}
 
 	if err = broadcastTransaction(ctx, transaction); err != nil {
@@ -100,7 +113,7 @@ func (strategy *outgoingTx) LockKey() string {
 func (strategy *outgoingTx) createOutgoingTxToRecord(ctx context.Context, c ClientInterface, opts []ModelOps) (*Transaction, error) {
 	// Create NEW transaction model
 	newOpts := c.DefaultModelOptions(append(opts, WithXPub(strategy.XPubKey), New())...)
-	tx := txFromSDKTx(strategy.SDKTx, newOpts...)
+	tx := txFromSDKTx(strategy.SDKTx, strategy.isExtended, newOpts...)
 	tx.DraftID = strategy.RelatedDraftID
 
 	if err := _hydrateOutgoingWithDraft(ctx, tx); err != nil {
@@ -174,4 +187,29 @@ func _handleNotifyP2PError(ctx context.Context, c ClientInterface, transaction *
 
 	// RevertTransaction saves the transaction itself as REVERTED
 	return p2pError
+}
+
+func _isTokenTransaction(tx *trx.Transaction) bool {
+	for _, in := range tx.Inputs {
+		if in.SourceTxOutput() == nil {
+			// tx is not in EF - ignore for now (consider as a normal tx)
+			return false
+		}
+
+		ops, err := in.SourceTxOutput().LockingScript.ParseOps()
+		if err != nil {
+			// something wrong with parsing the script - ignore
+			return false
+		}
+
+		spec := new(specifications.Bsv21EnvelopeSpec)
+		hasBsvEnvelope, _ := spec.IsSatisfiedBy(ops)
+
+		if hasBsvEnvelope {
+			// this is a token tx
+			return true
+		}
+	}
+
+	return false
 }

@@ -252,7 +252,10 @@ func (m *DraftTransaction) createTransactionHex(ctx context.Context) (err error)
 	}
 
 	// Create the final hex (without signatures)
-	m.Hex = tx.String()
+	m.Hex, err = tx.EFHex()
+	if err != nil {
+		return
+	}
 
 	return
 }
@@ -469,7 +472,7 @@ func (m *DraftTransaction) processUtxos(ctx context.Context, utxos []*Utxo) erro
 			return spverrors.ErrCouldNotFindDestination
 		}
 
-		// (!) replace lockingScript with lockingScript+token
+		// (!) replace destination lockingScript with actual UTXO lockingScript (may contain a token)
 		destination.LockingScript = lockingScript
 
 		m.Configuration.Inputs = append(
