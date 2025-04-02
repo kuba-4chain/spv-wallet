@@ -131,7 +131,7 @@ func getPaymailDefaults() *PaymailConfig {
 			BlockHeadersServiceAuthToken:           "mQZQ6WmxURxWz5ch", // #nosec G101
 		},
 		DefaultFromPaymail:      "from@domain.com",
-		Domains:                 []string{"localhost", "kuba.4chain.pm"},
+		Domains:                 []string{"localhost"},
 		DomainValidationEnabled: true,
 		SenderValidationEnabled: false,
 	}
