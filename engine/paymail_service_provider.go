@@ -144,12 +144,12 @@ func (p *PaymailDefaultServiceProvider) RecordTransaction(ctx context.Context,
 	metadata[ReferenceIDField] = p2pTx.Reference
 
 	// Record the transaction
-	sdkTx, err := buildSDKTx(p2pTx)
+	sdkTx, isExtended, err := buildSDKTx(p2pTx)
 	if err != nil {
 		return nil, err
 	}
 
-	rts, err := getIncomingTxRecordStrategy(ctx, p.client, sdkTx)
+	rts, err := getIncomingTxRecordStrategy(ctx, p.client, sdkTx, isExtended)
 	if err != nil {
 		return nil, err
 	}
@@ -189,9 +189,7 @@ func (p *PaymailDefaultServiceProvider) VerifyMerkleRoots(
 	}
 
 	valid, err := p.client.Chain().VerifyMerkleRoots(ctx, merkleRoots)
-
 	// NOTE: these errors goes to go-paymail and are not logged there, so we need to log them here
-
 	if err != nil {
 		p.client.Logger().Error().Err(err).Msg("Error verifying merkle roots")
 		return spverrors.ErrPaymailMerkleRootVerificationFailed.Wrap(err)
@@ -293,23 +291,23 @@ func createLockingScript(ecPubKey *ec.PublicKey) (lockingScript string, err erro
 	return
 }
 
-func buildSDKTx(p2pTx *paymail.P2PTransaction) (*trx.Transaction, error) {
+func buildSDKTx(p2pTx *paymail.P2PTransaction) (*trx.Transaction, bool, error) {
 	var err error
 	var tx *trx.Transaction
 	if p2pTx.Beef != "" {
 		tx, err = trx.NewTransactionFromBEEFHex(p2pTx.Beef)
 		if err != nil {
-			return nil, spverrors.Wrapf(err, "unable to create transaction from BEEF")
+			return nil, false, spverrors.Wrapf(err, "unable to create transaction from BEEF")
 		}
 
-		return tx, nil
+		return tx, false, nil
 	}
 	tx, err = trx.NewTransactionFromHex(p2pTx.Hex)
 	if err != nil {
-		return nil, spverrors.Wrapf(err, "unable to create transaction from hex")
+		return nil, false, spverrors.Wrapf(err, "unable to create transaction from hex")
 	}
 
-	return tx, nil
+	return tx, utils.IsEf(p2pTx.Hex), nil
 }
 
 func saveBEEFTxInputs(ctx context.Context, c ClientInterface, dBeef *beef.DecodedBEEF) {
